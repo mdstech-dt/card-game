@@ -40,7 +40,7 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);
 .hsub{color:var(--muted);font-size:12px;position:relative;}
 
 /* ─── FORM BODY ─── */
-.fbody{flex:1;padding:20px;overflow-y:auto;}
+.fbody{flex:1;padding:20px;}
 .cbox{background:var(--surface);border:1px solid var(--bdr);border-radius:var(--r);padding:16px;margin-bottom:20px;}
 .ctitle{font-size:12px;font-weight:700;color:var(--acc);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
 .cscroll{font-size:11px;color:var(--muted);line-height:1.8;max-height:88px;overflow-y:auto;margin-bottom:12px;padding-right:4px;}
@@ -67,6 +67,15 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);
 .iput::placeholder{color:var(--muted);}
 .iput:focus{border-color:var(--acc);background:var(--surface3);}
 .iput.err{border-color:var(--bad);background:rgba(255,68,102,0.07);}
+@keyframes errShake{
+  0%,100%{transform:translateX(0);}
+  15%{transform:translateX(-6px);}
+  30%{transform:translateX(6px);}
+  45%{transform:translateX(-5px);}
+  60%{transform:translateX(5px);}
+  75%{transform:translateX(-3px);}
+  90%{transform:translateX(3px);}
+}
 .emsg{font-size:11px;color:var(--bad);margin-top:5px;display:none;padding-left:2px;}
 .emsg.on{display:block;}
 .cblist{display:flex;flex-direction:column;gap:7px;}
@@ -292,7 +301,7 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);
       <div class="irow">
         <div class="ilbl">휴대전화 <span class="ri">*</span></div>
         <input class="iput" id="fp" type="tel" placeholder="010-0000-0000" oninput="fmtPh(this)">
-        <div class="emsg" id="ep">010-0000-0000 형식으로 입력해 주세요.</div>
+        <div class="emsg" id="ep">유효하지 않은 전화번호입니다.</div>
       </div>
       <div class="irow">
         <div class="ilbl">이메일 <span class="ri">*</span></div>
@@ -492,11 +501,31 @@ function fmtPh(el){
 }
 
 /* ── VALIDATION ── */
-const isPhone = v => /^010-\d{4}-\d{4}$/.test(v);
+const isPhone = v => {
+  if (!/^010-\d{4}-\d{4}$/.test(v)) return false;
+  const digits = v.replace(/-/g,'');
+  // 모두 같은 숫자 (010-0000-0000, 010-1111-1111 등)
+  if (/^010(\d)\1{7}$/.test(digits)) return false;
+  // 순차적 번호 (01012341234)
+  if (digits.slice(3) === '12341234' || digits.slice(3) === '11111111' ||
+      digits.slice(3) === '00000000' || digits.slice(3) === '99999999' ||
+      digits.slice(3) === '12345678' || digits.slice(3) === '87654321') return false;
+  return true;
+};
 const isEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+function scrollToEl(el) {
+  setTimeout(() => el.scrollIntoView({behavior:'smooth', block:'center'}), 50);
+}
+function scrollToError(el) {
+  scrollToEl(el);
+  el.style.animation = 'errShake 0.5s';
+  setTimeout(() => el.style.animation = '', 600);
+}
 function setErr(fid, eid, ok){
-  document.getElementById(fid).classList.toggle('err',!ok);
+  const el = document.getElementById(fid);
+  el.classList.toggle('err',!ok);
   if(eid) document.getElementById(eid).classList.toggle('on',!ok);
+  if(!ok) scrollToError(el);
   return ok;
 }
 function getVals(name, othId){
@@ -516,30 +545,78 @@ function getVals(name, othId){
 
 /* ── SUBMIT ── */
 function handleSubmit(){
-  if(!document.getElementById('consent').checked)
-    return alert('개인정보 수집 및 이용에 동의해 주세요.');
+  let firstErrEl = null;
+  function markErr(el, errMsgId){
+    el.classList.add('err');
+    if(errMsgId) document.getElementById(errMsgId).classList.add('on');
+    el.style.animation='errShake 0.5s';
+    setTimeout(()=>el.style.animation='',600);
+    if(!firstErrEl) firstErrEl = el;
+  }
+  function clearErr(el, errMsgId){
+    el.classList.remove('err');
+    if(errMsgId) document.getElementById(errMsgId)?.classList.remove('on');
+  }
+
+  /* ── 동의 체크 ── */
+  const consentEl = document.getElementById('consent');
+  const consentWrap = consentEl.closest('.consent-check-wrap');
+  if(!consentEl.checked){
+    consentWrap.classList.add('err-consent');
+    consentWrap.style.animation='errShake 0.5s';
+    setTimeout(()=>{consentWrap.classList.remove('err-consent');consentWrap.style.animation='';},600);
+    if(!firstErrEl) firstErrEl = consentWrap;
+  }
+
+  /* ── 개인정보 필드 ── */
   const nm=document.getElementById('fn').value.trim();
   const ph=document.getElementById('fp').value.trim();
   const em=document.getElementById('fe').value.trim();
   const co=document.getElementById('fc').value.trim();
   const dp=document.getElementById('fd').value.trim();
   const ps=document.getElementById('fpo').value.trim();
-  let ok=true;
-  ['fn','fc','fd','fpo'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(!el.value.trim()){el.classList.add('err');ok=false;}
-    else el.classList.remove('err');
-  });
-  if(!setErr('fp','ep',isPhone(ph))) ok=false;
-  if(!setErr('fe','ee',isEmail(em))) ok=false;
-  if(!ok) return alert('입력 정보를 확인해 주세요.');
+
+  if(!nm) markErr(document.getElementById('fn')); else clearErr(document.getElementById('fn'));
+  if(!isPhone(ph)) markErr(document.getElementById('fp'),'ep'); else clearErr(document.getElementById('fp'),'ep');
+  if(!isEmail(em)) markErr(document.getElementById('fe'),'ee'); else clearErr(document.getElementById('fe'),'ee');
+  if(!co) markErr(document.getElementById('fc')); else clearErr(document.getElementById('fc'));
+  if(!dp) markErr(document.getElementById('fd')); else clearErr(document.getElementById('fd'));
+  if(!ps) markErr(document.getElementById('fpo')); else clearErr(document.getElementById('fpo'));
+
+  /* ── 설문 ── */
   const q1v=getVals('q1','q1-ot'), q2v=getVals('q2','q2-ot');
   const q3v=[...document.querySelectorAll('input[name="q3"]:checked')].map(e=>e.value);
-  if(!q1v.length) return alert('주요 업무 분야를 선택해 주세요.');
-  if(q1v.includes('')) return alert('주요 업무 분야의 기타 내용을 입력해 주세요.');
-  if(!q2v.length) return alert('관심 기술/솔루션을 선택해 주세요.');
-  if(q2v.includes('')) return alert('관심 기술/솔루션의 기타 내용을 입력해 주세요.');
-  if(!q3v.length) return alert('관심 제품을 선택해 주세요.');
+
+  function qSectionErr(listId){
+    const el=document.getElementById(listId);
+    el.style.outline='2px solid var(--bad)';
+    el.style.borderRadius='8px';
+    el.style.animation='errShake 0.5s';
+    setTimeout(()=>{el.style.outline='';el.style.animation='';},700);
+    if(!firstErrEl) firstErrEl=el;
+  }
+  function qOtherErr(othId){
+    const el=document.getElementById(othId);
+    if(!el) return;
+    el.style.borderBottom='2px solid var(--bad)';
+    el.style.animation='errShake 0.5s';
+    setTimeout(()=>{el.style.animation='';},600);
+    if(!firstErrEl) firstErrEl=el;
+  }
+
+  if(!q1v.length) qSectionErr('q1');
+  else if(q1v.includes('')) qOtherErr('q1-ot');
+
+  if(!q2v.length) qSectionErr('q2');
+  else if(q2v.includes('')) qOtherErr('q2-ot');
+
+  if(!q3v.length) qSectionErr('q3');
+
+  /* ── 첫번째 오류로 스크롤 ── */
+  if(firstErrEl){
+    setTimeout(()=>firstErrEl.scrollIntoView({behavior:'smooth',block:'center'}), 100);
+    return;
+  }
   G.fd={name:nm,phone:ph,email:em,company:co,dept:dp,position:ps,
         workField:q1v,interests:q2v,products:q3v};
   startGame();
