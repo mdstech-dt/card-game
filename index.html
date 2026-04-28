@@ -90,6 +90,9 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);
   display:flex;align-items:center;gap:6px;font-family:'Orbitron',monospace;letter-spacing:1px;}
 .nlist{list-style:none;display:flex;flex-direction:column;gap:7px;}
 .nlist li{font-size:13px;color:var(--text);display:flex;align-items:flex-start;gap:8px;line-height:1.6;}
+.nlist li.two-line{display:block;padding-left:16px;position:relative;}
+.nlist li.two-line::before{content:'▸';color:var(--acc);position:absolute;left:0;top:1px;}
+.nlist li.two-line .indent{display:block;}
 .nlist li::before{content:'▸';color:var(--acc);flex-shrink:0;margin-top:1px;}
 .nbold{color:var(--acc);font-weight:700;}
 
@@ -331,7 +334,7 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);
       <ul class="nlist">
         <li>공개된 카드는 <span class="nbold">5초</span> 후 뒤집힙니다.</li>
         <li>제한 시간은 <span class="nbold">60초</span>입니다.</li>
-        <li>실수는 최대 <span class="nbold">2회</span>까지 허용됩니다. (3번째 오답 시 종료됩니다.)</li>
+        <li class="two-line">실수는 최대 <span class="nbold">2회</span>까지 허용됩니다.<br><span class="indent">(3번째 오답 시 종료됩니다.)</span></li>
       </ul>
     </div>
     <button class="btnstart" onclick="handleSubmit()">게임 시작 →</button>
