@@ -107,8 +107,8 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);
 .prev-overlay{
   position:fixed;inset:0;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  background:rgba(20,26,15,0.15);
-  backdrop-filter:blur(0px);
+  background:transparent;
+  backdrop-filter:none;
   z-index:50;
   pointer-events:none;
   transition:opacity 0.4s;
@@ -704,7 +704,7 @@ function endGame(reason){
     else{type='wb';result='성공 (30초 초과)';prize='볼펜';}
   } else if(reason==='miss'){type='ls';result='실패 (실수 초과)';prize='볼펜';}
   else{type='ls';result='실패 (시간 초과)';prize='볼펜';}
-  saveSheets({...G.fd,gameResult:result,gameTime:used,mistakes:G.miss,prize});
+  saveSheets({...G.fd,gameResult:result,gameTime:used+'초',mistakes:G.miss,prize});
   setTimeout(()=>showResult(type,used,prize),500);
 }
 function showResult(type,used,prize){
