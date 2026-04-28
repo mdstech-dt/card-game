@@ -717,7 +717,7 @@ function endGame(reason){
     else{type='wb';result='성공 (30초 초과)';prize='볼펜';}
   } else if(reason==='miss'){type='ls';result='실패 (실수 초과)';prize='볼펜';}
   else{type='ls';result='실패 (시간 초과)';prize='볼펜';}
-  saveSheets({...G.fd,gameResult:result,gameTime:used+'초',mistakes:G.miss,prize});
+  saveSheets({...G.fd,gameResult:result,gameTime:used+'초',mistakes:G.miss,matchedPairs:G.matchedCount+'/'+TOTAL_PAIRS,prize});
   setTimeout(()=>showResult(type,used,prize),500);
 }
 function showResult(type,used,prize){
