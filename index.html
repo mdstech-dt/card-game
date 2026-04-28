@@ -173,17 +173,19 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);
   transform-style:preserve-3d;
   transition:transform 0.55s cubic-bezier(0.4,0,0.2,1);
   pointer-events:none;  /* ★ pass clicks to .card */
+  overflow:visible;
 }
 .card.fp .ci,
 .card.mt .ci{
   transform:rotateY(180deg);
 }
 .cf{  /* card-face */
-  position:absolute;inset:0;
+  position:absolute;
+  inset:1px;   /* ★ 1px 여백으로 테두리 잘림 방지 */
   border-radius:11px;
   backface-visibility:hidden;
   -webkit-backface-visibility:hidden;
-  overflow:hidden;
+  overflow:visible;
   pointer-events:none;  /* ★ pass clicks to .card */
 }
 .cb{ /* back */
@@ -328,7 +330,7 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);
       <ul class="nlist">
         <li>공개된 카드는 <span class="nbold">5초</span> 후 뒤집힙니다.</li>
         <li>제한 시간은 <span class="nbold">60초</span>입니다.</li>
-        <li>실수는 최대 <span class="nbold">2회</span>까지 허용됩니다.<br>(3번째 오답 시 종료됩니다.)</li>
+        <li>실수는 최대 <span class="nbold">2회</span>까지 허용됩니다. (3번째 오답 시 종료됩니다.)</li>
       </ul>
     </div>
     <button class="btnstart" onclick="handleSubmit()">게임 시작 →</button>
