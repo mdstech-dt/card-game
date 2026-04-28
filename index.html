@@ -100,13 +100,30 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);
 .btnstart:active{transform:scale(0.97);opacity:0.85;}
 
 /* ─── PREVIEW ─── */
-#sp{background:var(--bg);align-items:center;justify-content:center;}
-.pwrap{width:100%;padding:14px 10px;}
-.ptop{text-align:center;margin-bottom:14px;}
-.pnum{font-family:'Orbitron',monospace;font-size:68px;font-weight:900;
-  color:var(--acc);text-shadow:0 0 30px var(--acc-glow);line-height:1;display:block;}
-.plbl{font-size:11px;color:var(--muted);letter-spacing:3px;margin-top:4px;font-family:'Orbitron',monospace;}
-.pgrd{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+#sp{background:var(--bg);position:relative;overflow:hidden;}
+/* 카드 그리드 - 게임과 동일하게 꽉 차게 */
+.pgrd{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:6px;flex:1;min-height:100vh;}
+/* 카운트다운 오버레이 - 화면 정중앙 */
+.prev-overlay{
+  position:fixed;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:rgba(20,26,15,0.72);
+  backdrop-filter:blur(2px);
+  z-index:50;
+  pointer-events:none;
+  transition:opacity 0.4s;
+}
+.prev-overlay.hide{opacity:0;}
+.pnum{
+  font-family:'Orbitron',monospace;font-size:110px;font-weight:900;
+  color:var(--acc);text-shadow:0 0 40px var(--acc-glow),0 0 80px var(--acc-glow);
+  line-height:1;display:block;animation:numPop 0.3s cubic-bezier(0.68,-0.55,0.27,1.55);
+}
+@keyframes numPop{0%{transform:scale(0.5);opacity:0;}100%{transform:scale(1);opacity:1;}}
+.plbl{
+  font-size:13px;color:var(--text);letter-spacing:4px;margin-top:12px;
+  font-family:'Orbitron',monospace;text-shadow:0 0 10px rgba(255,255,255,0.3);
+}
 
 /* ─── GAME ─── */
 #sg{background:var(--bg);}
@@ -315,13 +332,13 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);
 </div>
 
 <!-- ══ SCREEN: PREVIEW ══ -->
-<div id="sp" class="screen">
-  <div class="pwrap">
-    <div class="ptop">
-      <span class="pnum" id="pnum">5</span>
-      <div class="plbl">카드를 기억하세요!</div>
-    </div>
-    <div class="pgrd" id="pgrd"></div>
+<div id="sp" class="screen" style="position:relative;">
+  <!-- 카드 그리드 (꽉 차게) -->
+  <div class="pgrd" id="pgrd"></div>
+  <!-- 카운트다운 오버레이 -->
+  <div class="prev-overlay" id="prev-overlay">
+    <span class="pnum" id="pnum">5</span>
+    <div class="plbl">카드를 기억하세요!</div>
   </div>
 </div>
 
@@ -555,15 +572,27 @@ function startGame(){
 function runPreview(){
   let n=CFG.PREV_SEC;
   const el=document.getElementById('pnum');
+  const ov=document.getElementById('prev-overlay');
   el.textContent=n;
   const t=setInterval(()=>{
     n--;
-    if(n>0){ el.textContent=n; }
-    else{
+    if(n>0){
+      /* 숫자 바뀔 때 팝 애니메이션 */
+      el.style.animation='none';
+      void el.offsetWidth;
+      el.style.animation='numPop 0.3s cubic-bezier(0.68,-0.55,0.27,1.55)';
+      el.textContent=n;
+    } else {
       clearInterval(t);
-      const cards=document.querySelectorAll('#pgrd .card');
-      cards.forEach((c,i)=>setTimeout(()=>c.classList.remove('fp'), i*30));
-      setTimeout(beginGame, cards.length*30+700);
+      /* 오버레이 페이드아웃 */
+      ov.classList.add('hide');
+      setTimeout(()=>{
+        ov.style.display='none';
+        /* 카드 뒤집기 */
+        const cards=document.querySelectorAll('#pgrd .card');
+        cards.forEach((c,i)=>setTimeout(()=>c.classList.remove('fp'), i*30));
+        setTimeout(beginGame, cards.length*30+700);
+      }, 400);
     }
   },1000);
 }
