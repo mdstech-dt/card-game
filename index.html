@@ -102,7 +102,7 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);
 /* ─── PREVIEW ─── */
 #sp{background:var(--bg);position:relative;overflow:hidden;}
 /* 카드 그리드 - 게임과 동일하게 꽉 차게 */
-.pgrd{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:6px;flex:1;min-height:100vh;}
+.pgrd{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px;flex:1;min-height:100vh;}
 /* 카운트다운 오버레이 - 화면 정중앙 */
 .prev-overlay{
   position:fixed;inset:0;
@@ -158,13 +158,14 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);
  ════════════════════════════════════════════ */
 .cgrid{
   display:grid;grid-template-columns:repeat(4,1fr);
-  gap:4px;padding:6px;flex:1;
+  gap:6px;padding:8px;flex:1;
   cursor:pointer;
 }
 .card{
   width:100%;position:relative;
   padding-bottom:133%;
   -webkit-user-select:none;user-select:none;
+  overflow:visible;
 }
 
 .ci{  /* card-inner */
